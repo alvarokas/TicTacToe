@@ -11,3 +11,12 @@
 *.lai
 *.la
 *.a
+
+# build folders
+build/
+
+# bin folders
+bin/
+
+# temporary files
+*~
