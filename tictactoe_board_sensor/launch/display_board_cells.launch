@@ -1,0 +1,19 @@
+<!--defining the area of the cells in the game-->
+<launch>
+  <node name="usb_cam" pkg="usb_cam" type="usb_cam_node" output="screen" >
+    <param name="video_device" value="/dev/video0" />
+    <param name="image_width" value="640" />
+    <param name="image_height" value="480" />
+    <param name="pixel_format" value="mjpeg" />
+    <param name="camera_frame_id" value="usb_cam" />
+    <param name="io_method" value="mmap"/>
+  </node>
+
+  <!-- xml file containing the cells of the board -->
+  <param name="board_file" textfile="$(find tictactoe_board_sensor)/tttboard1.xml" />
+
+  <node name="show_board_cells" pkg="tictactoe_board_sensor" type="show_board_cells" respawn="false" output="screen">
+    <remap from="/image_in" to="/usb_cam/image_raw"/>        
+  </node>
+ 
+</launch>
