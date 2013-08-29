@@ -10,6 +10,8 @@
 #include <QFile>
 #include <QXmlStreamReader>
 
+#include <boost/lexical_cast.hpp>
+
 #include "src/board_cells_delimitation.h"
 
 namespace ttt
@@ -74,6 +76,25 @@ private:
         ROS_INFO("Xml configuration board loaded. %d cells loaded", (int)this->board.size());
     }
 
+
+    cv::Point centroid_of_cell(t_Cell& cell)
+    {
+        uint sumX = 0, sumY = 0;
+        size_t size = cell.size();
+        cv::Point centroid(0,0);
+        if(size > 0){
+            for (t_Cell::const_iterator it_point = cell.begin(); it_point != cell.end(); ++it_point) {
+                sumX += it_point->x;
+                sumY += it_point->y;
+            }
+            // TODO through exception if size <= 0
+            centroid.x = sumX/size;
+            centroid.y = sumY/size;
+        }
+        return centroid;
+    }
+
+
 public:
     CellDisplay()
         : it_(nh_),POINT_RADIUS(5)
@@ -118,9 +139,16 @@ public:
 
         // drawing all cells of the board game
         cv::drawContours(img_aux,this->board,-1, cv::Scalar(123,125,0),2); // drawing just the borders
+        for(size_t i=0;i!=this->board.size();++i)
+        {
+            cv::Point p = this->centroid_of_cell(this->board[i]);
+//            cv::circle(img_aux, p,5,cv::Scalar(0,0, 255),-1);
+            cv::putText(img_aux, boost::lexical_cast<std::string>(i+1), p, cv::FONT_HERSHEY_DUPLEX, 1,cv::Scalar(255,255,0));
+        }
+
+
 
         cv::imshow(CellDisplay::WINDOW, img_aux);
-
 
         int c = cv::waitKey(3);
         if( (c & 255) == 27 ) // ESC key pressed
@@ -128,6 +156,11 @@ public:
             ROS_INFO_STREAM("Exiting with ESC key ..." << this->board.size() << " cells selected");
             ros::shutdown();
         }
+    }
+
+    void sensing_cells(cv::Mat& img)
+    {
+
     }
 };
 
