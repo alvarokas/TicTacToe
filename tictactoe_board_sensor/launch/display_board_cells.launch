@@ -12,7 +12,9 @@
   <!-- xml file containing the cells of the board -->
   <param name="board_file" textfile="$(find tictactoe_board_sensor)/tttboard1.xml" />
 
-  <node name="show_board_cells" pkg="tictactoe_board_sensor" type="show_board_cells" respawn="false" output="screen">
+  <env name="ROSCONSOLE_CONFIG_FILE" value="$(find tictactoe_board_sensor)/custom_rosconsole.conf"/>
+
+  <node name="show_board_cells" pkg="tictactoe_board_sensor" type="show_board_cells" respawn="false" output="screen">    
     <remap from="/image_in" to="/usb_cam/image_raw"/>        
   </node>
  

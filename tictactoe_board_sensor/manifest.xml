@@ -15,6 +15,8 @@
   <depend package="std_msgs"/>
   <depend package="image_transport"/>
 
+  <rosdep name="libqt4-dev"/>
+
 </package>
 
 

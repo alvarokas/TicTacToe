@@ -1,33 +1,11 @@
-#include <ros/ros.h>
-#include <ros/console.h>
-#include <image_transport/image_transport.h>
-#include <cv_bridge/cv_bridge.h>
-#include <sensor_msgs/image_encodings.h>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
 
-namespace enc = sensor_msgs::image_encodings;
-
-typedef std::vector<cv::Point> t_Cell;    // vector of points delimiting a cell
-typedef std::vector<t_Cell> t_Board;   // vector of cells, i.e. a vector of vectors of points
-
-static const char WINDOW[] = "Image window";
+#include "src/board_cells_delimitation.h"
 
 
-class CellDelimitation
+namespace ttt
 {
-private:
 
-    ros::NodeHandle nh_;
-    image_transport::ImageTransport it_;
-    image_transport::Subscriber image_sub_;
-
-    static const short POINT_RADIUS = 5;
-
-    t_Cell points; // A vector of points delimiting a cell
-    t_Board board; // A vector of cells representing the board game
-
-    bool remove_point(const cv::Point & p)
+    bool CellDelimitation::remove_point(const cv::Point & p)
     {
         if (this->points.empty()) {
             ROS_DEBUG("Imposible to delte from an empty vector of points");
@@ -47,7 +25,7 @@ private:
         return false;
     }
 
-    bool remove_cell(const cv::Point & p)
+    bool CellDelimitation::remove_cell(const cv::Point & p)
     {
         if (this->board.empty()) {
             ROS_DEBUG("Imposible to delte from an empty board of cells");
@@ -65,18 +43,19 @@ private:
         return false;
     }
 
-    void show_hot_to(cv::Mat& img)
+    void CellDelimitation::show_how_to(cv::Mat& img)
     {
-        cv::putText(img,"DOUBLE-LEFT-CLICK to add/remove points to a cell", cv::Point(20,400),cv::FONT_HERSHEY_SIMPLEX,0.6,cv::Scalar(255,255,0));
+        cv::putText(img,"DOUBLE-LEFT-CLICK to add/remove points and cells", cv::Point(20,400),cv::FONT_HERSHEY_SIMPLEX,0.6,cv::Scalar(255,255,0));
         cv::putText(img,"Press SPACE bar to add the cell to the board", cv::Point(20,420),cv::FONT_HERSHEY_SIMPLEX,0.6,cv::Scalar(255,255,0));
-        cv::putText(img,"Press 'r' to show the results", cv::Point(20,440),cv::FONT_HERSHEY_SIMPLEX,0.6,cv::Scalar(255,255,0));
+        cv::putText(img,"Press 'R' to show the results", cv::Point(20,440),cv::FONT_HERSHEY_SIMPLEX,0.6,cv::Scalar(255,255,0));
+        cv::putText(img,"Press 'S' to save the board", cv::Point(20,460),cv::FONT_HERSHEY_SIMPLEX,0.6,cv::Scalar(255,255,0));
     }
 
     // thanks to http://bytefish.de/blog/extracting_contours_with_opencv/
-    void cropping_cells(cv_bridge::CvImageConstPtr& cv_cp_img)
+    void CellDelimitation::cropping_cells(cv_bridge::CvImageConstPtr& cv_cp_img,const t_Board& a_board)
     {
         cv::Mat mask = cv::Mat::zeros(cv_cp_img->image.rows, cv_cp_img->image.cols, CV_8UC1);
-        cv::drawContours(mask, this->board, -1, cv::Scalar(255), CV_FILLED);    // CV_FILLED fills the connected components found with white (white RGB value = 255,255,255)
+        cv::drawContours(mask, a_board, -1, cv::Scalar(255), CV_FILLED);    // CV_FILLED fills the connected components found with white (white RGB value = 255,255,255)
 
         cv::Mat im_crop(cv_cp_img->image.rows, cv_cp_img->image.cols, CV_8UC3); // let's create a new 8-bit 3-channel image with the same dimensions
         im_crop.setTo(cv::Scalar(0));                                           // we fill the new image with a color, in this case we set background to black.
@@ -89,22 +68,59 @@ private:
         cv::imshow("cropped", im_crop);
     }
 
-public:
-    CellDelimitation()
-        : it_(nh_)
+    void CellDelimitation::save_cells_to_file()
+    {
+        if (!this->board.empty())
+        {
+            QApplication app(0,0);
+            QString fileName = QFileDialog::getSaveFileName(0, "Save File", QDir::currentPath(), "XML files (*.xml)", new QString("XML files (*.xml)"));
+            ROS_DEBUG_STREAM("File Name selected= " << fileName.toStdString());
+            if(!fileName.isEmpty())
+            {
+                QFile output(fileName);
+                output.open(QIODevice::WriteOnly);
+
+                QXmlStreamWriter stream(&output);
+                stream.setAutoFormatting(true);
+                stream.writeStartDocument();
+
+                stream.writeStartElement("board");
+
+                for (size_t i=0; i< this->board.size();++i)
+                {
+                    stream.writeStartElement("cell");
+                    stream.writeAttribute("id", QString::number(i));
+                    for (t_Cell::const_iterator it_vertex = this->board[i].begin(); it_vertex != this->board[i].end(); ++it_vertex) {
+                        stream.writeEmptyElement("vertex");
+                        stream.writeAttribute("x", QString::number(it_vertex->x));
+                        stream.writeAttribute("y", QString::number(it_vertex->y));
+                    }
+                    stream.writeEndElement(); // cell
+                }
+
+                stream.writeEndElement(); // board
+                stream.writeEndDocument();
+                output.close();
+            }
+        }
+        else ROS_INFO("No cells in the board to be saved.");
+    }
+
+    CellDelimitation::CellDelimitation()
+        : it_(nh_),POINT_RADIUS(5)
     {
         image_sub_ = it_.subscribe("in", 1, &CellDelimitation::imageCb, this);
 
-        cv::namedWindow(WINDOW);
+        cv::namedWindow(CellDelimitation::WINDOW);
     }
 
-    ~CellDelimitation()
+    CellDelimitation::~CellDelimitation()
     {
-        cv::destroyWindow(WINDOW);
+        cv::destroyWindow(CellDelimitation::WINDOW);
     }
 
     /* mouse event handler function */
-    static void onMouse( int event, int x, int y, int, void* param)
+    void CellDelimitation::onMouse( int event, int x, int y, int, void* param)
     {
         if( event != cv::EVENT_LBUTTONDBLCLK )
             return;
@@ -121,18 +137,18 @@ public:
         // If the point correspond to a vertex, the vertex is removed
         if(img_conv->remove_point(p)) {
             ROS_INFO_STREAM("Point deleted. Remaining " << img_conv->points.size() << " points");
-        }        
+        }
         // If the point is new, it is added to the current cell
         else {
             img_conv->points.push_back(p);
             ROS_INFO_STREAM("Point added: " << p.x << " , " << p.y << ". Total points in this cell: "  << img_conv->points.size() );
-        }        
+        }
 
         return;
     }
 
 
-    void imageCb(const sensor_msgs::ImageConstPtr& msg)
+    void CellDelimitation::imageCb(const sensor_msgs::ImageConstPtr& msg)
     {
         //converting ROS image format to opencv image format
         cv_bridge::CvImageConstPtr cv_ptr;
@@ -149,7 +165,7 @@ public:
         cv::Mat img_aux = cv_ptr->image.clone();
 
         // how-to on screen
-        this->show_hot_to(img_aux);
+        this->show_how_to(img_aux);
 
         // drawing all points of the current cell
         for (t_Cell::iterator it_drawing = this->points.begin();it_drawing != this->points.end();++it_drawing) {
@@ -162,8 +178,8 @@ public:
         }
         cv::drawContours(img_aux,this->board,-1, cv::Scalar(123,125,0),2); // drawing the borders in a different color
 
-        cv::setMouseCallback(WINDOW, onMouse, this);
-        cv::imshow(WINDOW, img_aux);
+        cv::setMouseCallback(CellDelimitation::WINDOW, onMouse, this);
+        cv::imshow(CellDelimitation::WINDOW, img_aux);
 
 
         int c = cv::waitKey(3);
@@ -181,17 +197,21 @@ public:
             }
             else ROS_INFO_STREAM("The current cell is empty. Add points to it before you create a new one");
         }
-        else if ((char)c=='r') { // 'r' key pressed
-            this->cropping_cells(cv_ptr);
+        else if ((char)c=='r') { // 'R' key pressed
+            this->cropping_cells(cv_ptr, this->board);
+        }
+        else if ((char)c=='s') { // 'S' key pressed
+            this->save_cells_to_file();
         }
 
-    }
-};
+    }    
+
+}
 
 int main(int argc, char** argv)
 {
     ros::init(argc, argv, "cell_delimitation");
-    CellDelimitation cd;
+    ttt::CellDelimitation cd;
     ros::spin();
     return 0;
 }

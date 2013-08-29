@@ -37,7 +37,7 @@ private:
     bool remove_point(const cv::Point & p);
     bool remove_cell(const cv::Point & p);
     void show_how_to(cv::Mat& img);
-    void cropping_cells(cv_bridge::CvImageConstPtr& cv_cp_img);
+    static void cropping_cells(cv_bridge::CvImageConstPtr& cv_cp_img,const t_Board& a_board);
     void save_cells_to_file();
 
 public:

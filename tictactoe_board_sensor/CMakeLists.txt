@@ -11,6 +11,11 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 
 rosbuild_init()
 
+find_package(Qt4 REQUIRED)
+SET(QT_USE_QTXML 1)
+SET(QT_DONT_USE_QTGUI 0)
+include(${QT_USE_FILE})
+
 #set the default path for built executables to the "bin" directory
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
@@ -29,4 +34,10 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #rosbuild_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
 
+include_directories($(tictactoe_board_sensor_INCLUDE_DIRS))
+
 rosbuild_add_executable(cells_delimitation src/board_cells_delimitation.cpp)
+TARGET_LINK_LIBRARIES(cells_delimitation ${QT_LIBRARIES})
+
+rosbuild_add_executable(show_board_cells src/show_board_cells.cpp)
+TARGET_LINK_LIBRARIES(show_board_cells ${QT_LIBRARIES})
