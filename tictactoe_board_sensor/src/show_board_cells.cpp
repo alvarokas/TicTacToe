@@ -142,11 +142,9 @@ public:
         for(size_t i=0;i!=this->board.size();++i)
         {
             cv::Point p = this->centroid_of_cell(this->board[i]);
-//            cv::circle(img_aux, p,5,cv::Scalar(0,0, 255),-1);
+            //cv::circle(img_aux, p,5,cv::Scalar(0,0, 255),-1);
             cv::putText(img_aux, boost::lexical_cast<std::string>(i+1), p, cv::FONT_HERSHEY_DUPLEX, 1,cv::Scalar(255,255,0));
         }
-
-
 
         cv::imshow(CellDisplay::WINDOW, img_aux);
 
@@ -156,11 +154,32 @@ public:
             ROS_INFO_STREAM("Exiting with ESC key ..." << this->board.size() << " cells selected");
             ros::shutdown();
         }
+        else if ((char)c =='s')
+        {
+            this->sensing_cells(cv_ptr->image);
+        }
     }
 
-    void sensing_cells(cv::Mat& img)
+    void sensing_cells(const cv::Mat& img)
     {
+        ROS_DEBUG("@sensing_cells");
+        short int counter=0;
+        foreach (t_Cell cell, this->board) {
+            cv::Mat mask = cv::Mat::zeros(img.rows, img.cols, CV_8UC1);
+            cv::drawContours(mask, t_Board(1,cell), -1, cv::Scalar(255), CV_FILLED);  // CV_FILLED fills the connected components found with white (white RGB value = 255,255,255)
 
+            cv::Mat im_crop(img.rows, img.cols, CV_8UC3);                           // let's create a new 8-bit 3-channel image with the same dimensions
+            im_crop.setTo(cv::Scalar(0));                                           // we fill the new image with a color, in this case we set background to black.
+            img.copyTo(im_crop, mask);                                              // copy just the elements from the original image indicated by the non-zero elements from mask to crop
+            cv::normalize(mask.clone(), mask, 0.0, 255.0, CV_MINMAX, CV_8UC1);      // normalize so imwrite(...)/imshow(...) shows the mask correctly!
+
+            // show the images
+            /*cv::imshow("original", img);
+            cv::imshow("mask", mask);*/
+            std::string win_name="cell";
+            win_name+=boost::lexical_cast<std::string>(++counter);
+            cv::imshow(win_name, im_crop);
+        }
     }
 };
 

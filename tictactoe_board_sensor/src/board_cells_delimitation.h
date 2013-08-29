@@ -37,7 +37,7 @@ private:
     bool remove_point(const cv::Point & p);
     bool remove_cell(const cv::Point & p);
     void show_how_to(cv::Mat& img);
-    static void cropping_cells(cv_bridge::CvImageConstPtr& cv_cp_img,const t_Board& a_board);
+    static void cropping_cells(cv_bridge::CvImageConstPtr& cv_cp_img,const t_Board& a_board);    
     void save_cells_to_file();
 
 public:
@@ -47,6 +47,7 @@ public:
     /* mouse event handler function */
     static void onMouse( int event, int x, int y, int, void* param);
     void imageCb(const sensor_msgs::ImageConstPtr& msg);
+
 };
 
 const char CellDelimitation::WINDOW[] = "Cell delimitation";
