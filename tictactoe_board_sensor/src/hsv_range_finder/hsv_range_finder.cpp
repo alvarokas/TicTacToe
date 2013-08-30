@@ -7,11 +7,6 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-#include <QFile>
-#include <QXmlStreamReader>
-
-#include <boost/lexical_cast.hpp>
-
 #include "src/board_cells_delimitation.h"
 
 namespace ttt

@@ -9,6 +9,8 @@
     <param name="io_method" value="mmap"/>
   </node>
 
+  <env name="ROSCONSOLE_CONFIG_FILE" value="$(find tictactoe_board_sensor)/custom_rosconsole.conf"/>
+
   <node name="hsv_range_finder" pkg="tictactoe_board_sensor" type="hsv_range_finder" respawn="false" output="screen">
     <remap from="/image_in" to="/usb_cam/image_raw"/>        
   </node>
