@@ -1,3 +1,6 @@
+#ifndef BOARD_CELLS_DELIMITATION_H
+#define BOARD_CELLS_DELIMITATION_H
+
 #include <ros/ros.h>
 #include <ros/console.h>
 #include <image_transport/image_transport.h>
@@ -11,13 +14,11 @@
 #include <QFileDialog>
 #include <QApplication>
 
-namespace enc = sensor_msgs::image_encodings;
+#include "ttt_definitions.h"
+#include "ttt_cells.h"
 
 namespace ttt
 {
-
-typedef std::vector<cv::Point> t_Cell;    // vector of points delimiting a cell
-typedef std::vector<t_Cell> t_Board;   // vector of cells, i.e. a vector of vectors of points
 
 class CellDelimitation
 {
@@ -38,7 +39,6 @@ private:
     bool remove_cell(const cv::Point & p);
     void show_how_to(cv::Mat& img);
     static void cropping_cells(cv_bridge::CvImageConstPtr& cv_cp_img,const t_Board& a_board);    
-    void save_cells_to_file();
 
 public:
     CellDelimitation();
@@ -53,3 +53,5 @@ public:
 const char CellDelimitation::WINDOW[] = "Cell delimitation";
 
 }
+
+#endif //BOARD_CELLS_DELIMITATION_H

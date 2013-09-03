@@ -40,12 +40,20 @@ rosbuild_genmsg()
 
 include_directories($(tictactoe_board_sensor_INCLUDE_DIRS))
 
+rosbuild_add_library(ttt src/ttt_cells.cpp)
+
 rosbuild_add_executable(cells_delimitation src/board_cells_delimitation.cpp)
+TARGET_LINK_LIBRARIES(cells_delimitation ttt)
 TARGET_LINK_LIBRARIES(cells_delimitation ${QT_LIBRARIES})
 
 rosbuild_add_executable(show_board_cells src/show_board_cells.cpp)
+TARGET_LINK_LIBRARIES(show_board_cells ttt)
 TARGET_LINK_LIBRARIES(show_board_cells ${QT_LIBRARIES})
 
 rosbuild_add_executable(hsv_range_finder src/hsv_range_finder/hsv_range_finder.cpp)
 
 rosbuild_add_executable(board_display src/tictactoe_board_display/board_display.cpp)
+
+rosbuild_add_executable(board_state_sensing src/board_state_sensing.cpp)
+TARGET_LINK_LIBRARIES(board_state_sensing ttt)
+TARGET_LINK_LIBRARIES(board_state_sensing ${QT_LIBRARIES})

@@ -55,7 +55,7 @@ namespace ttt
     void CellDelimitation::cropping_cells(cv_bridge::CvImageConstPtr& cv_cp_img,const t_Board& a_board)
     {
         cv::Mat mask = cv::Mat::zeros(cv_cp_img->image.rows, cv_cp_img->image.cols, CV_8UC1);
-        cv::drawContours(mask, a_board, -1, cv::Scalar(255), CV_FILLED);    // CV_FILLED fills the connected components found with white (white RGB value = 255,255,255)
+        cv::drawContours(mask, a_board, -1, cv::Scalar(255), CV_FILLED);        // CV_FILLED fills the connected components found with white (white RGB value = 255,255,255)
 
         cv::Mat im_crop(cv_cp_img->image.rows, cv_cp_img->image.cols, CV_8UC3); // let's create a new 8-bit 3-channel image with the same dimensions
         im_crop.setTo(cv::Scalar(0));                                           // we fill the new image with a color, in this case we set background to black.
@@ -66,44 +66,6 @@ namespace ttt
         cv::imshow("original", cv_cp_img->image);
         cv::imshow("mask", mask);
         cv::imshow("cropped", im_crop);
-    }
-
-    void CellDelimitation::save_cells_to_file()
-    {
-        if (!this->board.empty())
-        {
-            QApplication app(0,0);
-            QString fileName = QFileDialog::getSaveFileName(0, "Save File", QDir::currentPath(), "XML files (*.xml)", new QString("XML files (*.xml)"));
-            ROS_DEBUG_STREAM("File Name selected= " << fileName.toStdString());
-            if(!fileName.isEmpty())
-            {
-                QFile output(fileName);
-                output.open(QIODevice::WriteOnly);
-
-                QXmlStreamWriter stream(&output);
-                stream.setAutoFormatting(true);
-                stream.writeStartDocument();
-
-                stream.writeStartElement("board");
-
-                for (size_t i=0; i< this->board.size();++i)
-                {
-                    stream.writeStartElement("cell");
-                    stream.writeAttribute("id", QString::number(i));
-                    for (t_Cell::const_iterator it_vertex = this->board[i].begin(); it_vertex != this->board[i].end(); ++it_vertex) {
-                        stream.writeEmptyElement("vertex");
-                        stream.writeAttribute("x", QString::number(it_vertex->x));
-                        stream.writeAttribute("y", QString::number(it_vertex->y));
-                    }
-                    stream.writeEndElement(); // cell
-                }
-
-                stream.writeEndElement(); // board
-                stream.writeEndDocument();
-                output.close();
-            }
-        }
-        else ROS_INFO("No cells in the board to be saved.");
     }
 
     CellDelimitation::CellDelimitation()
@@ -201,7 +163,7 @@ namespace ttt
             this->cropping_cells(cv_ptr, this->board);
         }
         else if ((char)c=='s') { // 'S' key pressed
-            this->save_cells_to_file();
+            Cells::save_to_file(this->board);
         }
 
     }    

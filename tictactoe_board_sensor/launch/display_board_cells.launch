@@ -1,4 +1,8 @@
-<!--defining the area of the cells in the game-->
+<!--Display for checking the areas defined as cells.
+    Pressing the 's' key, the filtered images for each cell are displayed too.
+    The information is read from an xml file loaded in the parameter server.
+-->
+
 <launch>
   <node name="usb_cam" pkg="usb_cam" type="usb_cam_node" output="screen" >
     <param name="video_device" value="/dev/video0" />
