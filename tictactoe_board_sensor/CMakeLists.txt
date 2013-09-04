@@ -52,7 +52,7 @@ TARGET_LINK_LIBRARIES(show_board_cells ${QT_LIBRARIES})
 
 rosbuild_add_executable(hsv_range_finder src/hsv_range_finder/hsv_range_finder.cpp)
 
-rosbuild_add_executable(board_display src/tictactoe_board_display/board_display.cpp)
+rosbuild_add_executable(board_scheme src/tictactoe_board_display/board_scheme.cpp)
 
 rosbuild_add_executable(board_state_sensing src/board_state_sensing.cpp)
 TARGET_LINK_LIBRARIES(board_state_sensing ttt)

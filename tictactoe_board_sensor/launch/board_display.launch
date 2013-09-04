@@ -17,6 +17,5 @@
     <param name="autosize" value="true" />
   </node>
 
-  <node name="board_display" pkg="tictactoe_board_sensor" type="board_display" respawn="false" output="screen">
-  </node>
+  <include file="$(find tictactoe_board_sensor)/launch/board_scheme_node.launch" />
 </launch>
